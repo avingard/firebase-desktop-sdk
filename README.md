@@ -35,7 +35,7 @@ firestore.collection("cities").add(City(name = "New York"))
 firestore.collection("cities").document("id").delete()
 firestore.collection("cities").document("id").update("address", "myaddress")
 firestore.collection("cities").document("id").await()
-˙``
+```
 
 
 ###### Get realtime updates: 
