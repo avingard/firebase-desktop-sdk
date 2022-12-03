@@ -2,7 +2,7 @@
 
 **All credit goes to the [official Firebase project](https://firebase.google.com)**
 
-A light wrapper around the public firebase REST / gRPC apis
+A light wrapper around the public firebase REST / gRPC apis, using kotlin coroutines.
 
 Inspiration: With Kotlin-Multiplatform and Compose Desktop becoming more popular,
 I found myself in great need of a firestore desktop implementation
