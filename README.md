@@ -10,7 +10,12 @@ and since there was no such thing, other than the official Admin Sdk,
 I was forced to use the public REST & gRPC apis, and implement one myself.
 
 
-## Init: 
+## Supported libraries so far: 
+
+Firebase auth, Firestore, Firestorage
+
+
+## Init 
 
 ```
 Firebase.initializeApp(firebaseOptions {
@@ -21,6 +26,30 @@ Firebase.initializeApp(firebaseOptions {
     storageBucket = "bucket-name"
 })
 ```
+
+
+## Firebase auth
+
+It is integrated with all the currently supported libraries, when current user's not set, 
+no auth headers are being sent towards google's servers.
+
+
+```
+val auth = Firebase.auth
+
+auth.signInWithEmailAndPassword("", "")
+
+val user = auth.getCurrentUser()
+val flow: StateFlow<FirebaseUser?> = auth.getCurrentUserFlow()
+
+// Listen for authenticated user token updates: 
+
+user?.getRefreshTokenFlow()?.collect { token ->
+    // Save token locally        
+} 
+
+```
+
 
 ## Firestore
 
@@ -50,6 +79,19 @@ Firebase.firestore
     }
 ```
 
+
+## What's missing?
+
+There are many things I did not require for my project. It is far from ready to be used in production,
+but it's a good start nonetheless. The most important ones come to mind: 
+
+- Any sort of disk cache
+- Firestore pagination
+- A lot of other libraries that you would usually find in the official mobile - web sdk.
+
+And the list goes on...
+
+Any contribution is appreciated!
 
 
 
