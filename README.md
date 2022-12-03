@@ -10,7 +10,7 @@ and since there was no such thing, other than the official Admin Sdk,
 I was forced to use the public REST & gRPC apis, and implement one myself.
 
 
-Init: 
+## Init: 
 
 ```
 Firebase.initializeApp(firebaseOptions {
