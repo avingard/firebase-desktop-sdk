@@ -1,27 +1,41 @@
 package com.avingard.firebase.auth
 
-import com.avingard.firebase.FirebaseApp
+import com.avingard.LOG
+import com.avingard.className
+import com.avingard.firebase.Firebase
+import com.starxg.keytar.Keytar
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.jose4j.jwt.consumer.JwtConsumerBuilder
 import java.time.Instant
+import java.util.prefs.Preferences
 
-class FirebaseAuth(firebaseApp: FirebaseApp) {
-    private val httpClient = firebaseApp.httpClient
-    private val apiKey = firebaseApp.firestoreOptions.apiKey
+class FirebaseAuth(firebase: Firebase) {
+    private val httpClient = firebase.httpClient
+    private val apiKey = firebase.firebaseOptions.apiKey
+    private val emulator = firebase.firebaseOptions.firebaseAuthEmulator
+
+    private val keytar = Keytar.getInstance()
+    private val preferences = Preferences.userNodeForPackage(javaClass)
+
+    private val requestRegex = with(emulator) {
+        if (useEmulator) "http://$address:$port/" else "https://"
+    }
 
     private val currentUser = MutableStateFlow<FirebaseUser?>(null)
 
     suspend fun signInWithEmailAndPassword(email: String, password: String): FirebaseUser {
-        val response = httpClient.post("https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=$apiKey") {
+        val response = httpClient.post("${requestRegex}identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=$apiKey") {
             contentType(ContentType.Application.Json)
             setBody(RegularAuthRequestData(email, password))
         }
@@ -37,31 +51,26 @@ class FirebaseAuth(firebaseApp: FirebaseApp) {
             id = data.localId,
             firebaseAuth = this
         ).apply {
-            updateTokens(tokensFromData(data))
+            val tokens = tokensFromData(data)
+            updateTokens(tokens)
             currentUser.update { this }
+            saveRefreshToken(id, tokens)
         }
     }
 
-    // tokens state - { updated: Boolean, tokens: Tokens }
+    suspend fun getCurrentUser(): FirebaseUser? {
+        val currentUser = currentUser.value
+        if (currentUser != null) return currentUser
 
-    // getToken: tokens state . first { it.updated }
-
-    //
-
-    suspend fun signInWithRefreshToken(refreshToken: String): FirebaseUser {
-        val data = exchangeRefreshTokenForIdToken(refreshToken)
-
-        return FirebaseUser(
-            id = data.userId,
-            firebaseAuth = this
-        ).apply {
-            updateTokens(tokensFromData(data))
-            currentUser.update { this }
+        return try {
+            val refreshToken = getSavedRefreshToken() ?: return null
+            signInWithRefreshToken(refreshToken).also { newUser ->
+                this.currentUser.update { newUser }
+            }
+        } catch (e: Exception) {
+            LOG.error("Failed auto login", e)
+            return null
         }
-    }
-
-    fun getCurrentUser(): FirebaseUser? {
-        return currentUser.value
     }
 
     fun getCurrentUserFlow(): StateFlow<FirebaseUser?> = currentUser
@@ -71,8 +80,22 @@ class FirebaseAuth(firebaseApp: FirebaseApp) {
         return tokensFromData(data)
     }
 
+    private suspend fun signInWithRefreshToken(refreshToken: String): FirebaseUser {
+        val data = exchangeRefreshTokenForIdToken(refreshToken)
+
+        return FirebaseUser(
+            id = data.userId,
+            firebaseAuth = this
+        ).apply {
+            val tokens = tokensFromData(data)
+            updateTokens(tokens)
+            currentUser.update { this }
+            saveRefreshToken(id, tokens)
+        }
+    }
+
     private suspend fun exchangeRefreshTokenForIdToken(refreshToken: String): TokenExchangeResponseData {
-        val response = httpClient.post("https://securetoken.googleapis.com/v1/token?key=$apiKey") {
+        val response = httpClient.post("${requestRegex}securetoken.googleapis.com/v1/token?key=$apiKey") {
             contentType(ContentType.Application.FormUrlEncoded)
             setBody("grant_type=refresh_token&refresh_token=$refreshToken")
         }
@@ -103,11 +126,40 @@ class FirebaseAuth(firebaseApp: FirebaseApp) {
 
     private fun extractUserClaims(idToken: String): Map<String, Any> {
         val jwtConsumer = JwtConsumerBuilder()
+            .setDisableRequireSignature()
             .setSkipAllValidators()
             .setSkipSignatureVerification()
             .build()
 
         return jwtConsumer.processToClaims(idToken).claimsMap
+    }
+
+    private suspend fun saveRefreshToken(userId: String, tokens: Tokens) {
+        try {
+            withContext(Dispatchers.IO) {
+                preferences.put("user_id", userId)
+                keytar.setPassword(className, userId, tokens.refreshToken)
+            }
+        } catch (e: Exception) {
+            LOG.error("FirebaseAuth: Failed to save refresh token", e)
+        }
+    }
+
+    private suspend fun getSavedRefreshToken(): String? {
+        return withContext(Dispatchers.IO) {
+            val userId = preferences.get("user_id", null) ?: return@withContext null
+            keytar.getPassword(className, userId)
+        }
+    }
+
+    private suspend fun clearSavedCredentials() {
+        withContext(Dispatchers.IO) {
+            preferences.clear()
+            val credentials = keytar.getCredentials(className)
+            credentials.forEach { (name, _) ->
+                keytar.deletePassword(className, name)
+            }
+        }
     }
 
     @Serializable
@@ -125,7 +177,7 @@ class FirebaseAuth(firebaseApp: FirebaseApp) {
         val expiresIn: String,
         val localId: String,
         val registered: Boolean,
-        val displayName: String
+        val displayName: String = ""
     )
 
     @Serializable
@@ -152,4 +204,8 @@ class FirebaseAuth(firebaseApp: FirebaseApp) {
         val code: Int,
         val message: String
     )
+
+    companion object {
+        val instance by lazy { Firebase.auth }
+    }
 }

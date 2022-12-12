@@ -37,6 +37,8 @@ internal class Watch(
     private val stub: FirestoreCoroutineStub,
     private val comparator: Comparator<DocumentSnapshot> = query.comparator()
 ) {
+    private val WATCH_ID = UUID.randomUUID()
+
     private val retrySettings = RetrySettings.newBuilder()
         .setInitialRetryDelay(Duration.ofMillis(1000L))
         .setMaxRetryDelay(Duration.ofMillis(32_000L))
@@ -149,7 +151,7 @@ internal class Watch(
                     FILTER -> {
                         if (listenResponse.filter.count != currentSize()) {
                             resetDocs()
-                            //this will reopen stream
+                            //this will restart listening
                             throw StatusException(Status.fromCode(Code.UNKNOWN))
                         }
                     }
@@ -293,10 +295,12 @@ internal class Watch(
     }
 
     private suspend fun maybeReopenStream(throwable: Throwable?) {
+        LOG.debug("Watch-$WATCH_ID: Stream ended.")
         if (nextAttempt != null) {
             nextAttempt = backoff.createNextAttempt(nextAttempt)
         }
         if (!isPermanentError(throwable)) {
+            LOG.debug("Watch-$WATCH_ID: Reopening stream.")
             if (isResourceExhaustedError(throwable)) {
                 nextAttempt = backoff.createNextAttempt(nextAttempt)
             }

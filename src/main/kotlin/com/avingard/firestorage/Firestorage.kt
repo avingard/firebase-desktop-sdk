@@ -1,8 +1,8 @@
 package com.avingard.firestorage
 
-import com.avingard.firebase.FirebaseApp
+import com.avingard.LOG
+import com.avingard.firebase.Firebase
 import io.ktor.client.request.*
-import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
@@ -10,10 +10,23 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.URLEncoder
 
-class Firestorage(firebaseApp: FirebaseApp) {
-    private val httpClient = firebaseApp.httpClient
-    private val firebaseOptions = firebaseApp.firestoreOptions
-    private val baseUrl = "https://firebasestorage.googleapis.com/v0"
+class Firestorage(firebase: Firebase) {
+    private val httpClient = firebase.httpClient
+    private val firebaseOptions = firebase.firebaseOptions
+    private val emulator = firebaseOptions.firestorageEmulator
+
+    private val baseUrl = with(emulator) {
+        if (useEmulator) {
+            "http://$address:$port/v0"
+        } else {
+            "https://firebasestorage.googleapis.com/v0"
+        }
+    }
+
+    private val contentTypeMap = mapOf(
+        "png" to "image/png",
+        "jpeg" to "image/jpeg"
+    )
 
     suspend fun getResource(resourcePath: String): ByteArray {
         return withContext(Dispatchers.IO) {
@@ -22,7 +35,7 @@ class Firestorage(firebaseApp: FirebaseApp) {
                 throw RuntimeException("Storage bucket is not set!")
             }
 
-            val token = FirebaseApp.auth.getCurrentUser()?.getIdToken()
+            val token = Firebase.auth.getCurrentUser()?.getIdToken()
             val response = httpClient.get("$baseUrl/b/$storageBucket/o/${encodeUrl(resourcePath)}?alt=media") {
                 headers {
                     if (token != null) {
@@ -30,9 +43,12 @@ class Firestorage(firebaseApp: FirebaseApp) {
                     }
                 }
             }
+
             response.readBytes()
         }
     }
+
+
 
     suspend fun getResourceAsChannel(resourcePath: String): ByteReadChannel {
         val storageBucket = firebaseOptions.storageBucket
@@ -40,7 +56,7 @@ class Firestorage(firebaseApp: FirebaseApp) {
             throw RuntimeException("Storage bucket is not set!")
         }
 
-        val token = FirebaseApp.auth.getCurrentUser()?.getIdToken()
+        val token = Firebase.auth.getCurrentUser()?.getIdToken()
         val response = httpClient.get("$baseUrl/b/$storageBucket/o/${encodeUrl(resourcePath)}?alt=media") {
             headers {
                 if (token != null) {
@@ -53,29 +69,32 @@ class Firestorage(firebaseApp: FirebaseApp) {
 
     suspend fun saveResource(resourcePath: String, resource: ByteArray) {
         val storageBucket = firebaseOptions.storageBucket
+
         if (storageBucket.isBlank()) {
             throw RuntimeException("Storage bucket is not set!")
         }
 
-        val token = FirebaseApp.auth.getCurrentUser()?.getIdToken()
-        httpClient.submitFormWithBinaryData(
-            url = "$baseUrl/b/$storageBucket/o/${encodeUrl(resourcePath)}",
-            formData = formData {
-                append("image", resource, Headers.build {
-                    append(HttpHeaders.ContentType, "image/png")
-                })
-            }
-        ) {
+        val token = Firebase.auth.getCurrentUser()?.getIdToken()
+        val contentType = contentTypeMap[resourcePath.split(".")[1]]
+
+        val response = httpClient.post("$baseUrl/b/$storageBucket/o/${encodeUrl(resourcePath)}") {
+            setBody(resource)
             headers {
+                if (contentType != null) {
+                    append(HttpHeaders.ContentType, contentType)
+                }
+
                 if (token != null) {
                     append(HttpHeaders.Authorization, "Bearer $token")
                 }
             }
         }
+
+        LOG.info("${response.status}: ${response.bodyAsText()}")
     }
 
     companion object {
-        val instance by lazy { FirebaseApp.firestorage }
+        val instance by lazy { Firebase.firestorage }
     }
 }
 

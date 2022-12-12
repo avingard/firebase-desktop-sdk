@@ -1,5 +1,6 @@
 package com.avingard.firestore
 
+import com.avingard.LOG
 import com.avingard.firestore.annotations.DocumentId
 import com.avingard.firestore.annotations.IgnoreProperty
 import com.avingard.toInstant
@@ -80,6 +81,6 @@ private fun Any.convertToStringValueMap(): Map<String, Value> {
 
     return clazz.declaredMemberProperties
         .map { it as KProperty1<Any, *> }
-        .filter { !it.hasAnnotation<IgnoreProperty>() || it.name == fieldName }
+        .filterNot { (it.hasAnnotation<IgnoreProperty>() || it.name == fieldName) }
         .associateBy({ it.name }, { it.get(this).toValue() })
 }

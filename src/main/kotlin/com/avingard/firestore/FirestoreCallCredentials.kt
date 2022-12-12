@@ -1,7 +1,7 @@
 package com.avingard.firestore
 
 import com.avingard.LOG
-import com.avingard.firebase.FirebaseApp
+import com.avingard.firebase.Firebase
 import com.avingard.firebase.FirebaseOptions
 import io.grpc.CallCredentials
 import io.grpc.Metadata
@@ -13,7 +13,7 @@ import java.util.concurrent.Executor
 internal class FirestoreCallCredentials(firebaseOptions: FirebaseOptions) : CallCredentials() {
     private val databaseUrl = "projects/${firebaseOptions.projectId}/databases/(default)"
     private val scope = CoroutineScope(SupervisorJob())
-    private val auth = FirebaseApp.auth
+    private val auth = Firebase.auth
 
     override fun applyRequestMetadata(requestInfo: RequestInfo?, executor: Executor?, metadataApplier: MetadataApplier?) {
         scope.launch {

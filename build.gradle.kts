@@ -35,7 +35,7 @@ dependencies {
 
     implementation("com.google.api:gax:2.19.5")
     implementation("com.google.api:gax-grpc:2.19.5")
-
+    implementation("com.starxg:java-keytar:1.0.0")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
 
     //ktor
