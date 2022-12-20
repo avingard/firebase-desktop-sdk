@@ -1,7 +1,7 @@
 package com.avingard.firestore
 
 import com.avingard.firestore.annotations.DocumentId
-import com.avingard.toLocalDateTime
+import com.avingard.firebase.toLocalDateTime
 import java.time.Instant
 import java.time.LocalDateTime
 import kotlin.reflect.KClass

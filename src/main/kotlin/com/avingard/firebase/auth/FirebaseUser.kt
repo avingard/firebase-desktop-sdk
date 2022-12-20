@@ -1,18 +1,12 @@
 package com.avingard.firebase.auth
 
-import com.avingard.LOG
-import com.starxg.keytar.Keytar
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
-import java.io.FileOutputStream
 import java.time.Instant
-import java.util.prefs.Preferences
 
 
 class FirebaseUser(

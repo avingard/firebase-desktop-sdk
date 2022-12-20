@@ -1,8 +1,6 @@
 package com.avingard.firestore
 
-import com.avingard.LOG
 import com.google.firestore.v1.*
-import com.google.firestore.v1.FirestoreGrpcKt.FirestoreCoroutineStub
 import com.google.firestore.v1.StructuredQuery.FieldFilter
 import com.google.firestore.v1.StructuredQuery.CompositeFilter
 import com.google.firestore.v1.StructuredQuery.Order
@@ -13,11 +11,9 @@ import com.google.firestore.v1.StructuredQueryKt.fieldFilter
 import com.google.firestore.v1.StructuredQueryKt.fieldReference
 import com.google.firestore.v1.StructuredQueryKt.filter
 import com.google.firestore.v1.StructuredQueryKt.order
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -38,9 +34,8 @@ open class Query(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     fun snapshots(): Flow<QuerySnapshot> {
-        val dispatcher = Dispatchers.IO.limitedParallelism(1)
         val watch = Watch(this, stub).apply {
-            scope.launch(dispatcher) { listen() }
+            scope.launch(Dispatchers.IO.limitedParallelism(1)) { listen() }
         }
 
         return watch.getSnapshotFlow()

@@ -1,18 +1,10 @@
 package com.avingard.firestore
 
-import com.avingard.getDocumentId
-import com.avingard.toInstant
-import com.avingard.toLocalDateTime
+import com.avingard.firebase.getDocumentId
+import com.avingard.firebase.toInstant
 import com.google.firestore.v1.Document
-import com.google.firestore.v1.FirestoreGrpcKt.FirestoreCoroutineStub
 import com.google.firestore.v1.Value
-import kotlinx.coroutines.CoroutineScope
 import java.time.Instant
-import kotlin.reflect.KClass
-import kotlin.reflect.full.isSubclassOf
-import kotlin.reflect.full.primaryConstructor
-import kotlin.reflect.jvm.jvmErasure
-
 
 
 data class DocumentSnapshot (

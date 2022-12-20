@@ -1,9 +1,8 @@
 package com.avingard.firestore
 
-import com.avingard.generateAutoId
-import com.avingard.getDocumentId
+import com.avingard.firebase.generateAutoId
+import com.avingard.firebase.getDocumentId
 import com.google.firestore.v1.*
-import kotlinx.coroutines.CoroutineScope
 
 class CollectionReference(
     firestore: Firestore,

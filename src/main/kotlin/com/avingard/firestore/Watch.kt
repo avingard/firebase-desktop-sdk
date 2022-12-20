@@ -1,8 +1,8 @@
 package com.avingard.firestore
 
-import com.avingard.CurrentMillisClock
-import com.avingard.LOG
-import com.avingard.toInstant
+import com.avingard.firebase.CurrentMillisClock
+import com.avingard.firebase.LOG
+import com.avingard.firebase.toInstant
 import com.google.api.gax.retrying.ExponentialRetryAlgorithm
 import com.google.api.gax.retrying.RetrySettings
 import com.google.api.gax.retrying.TimedAttemptSettings
@@ -20,7 +20,6 @@ import io.grpc.Status
 import io.grpc.Status.Code
 import io.grpc.StatusException
 import io.grpc.StatusRuntimeException
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

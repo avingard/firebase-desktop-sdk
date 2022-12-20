@@ -1,10 +1,9 @@
 package com.avingard.firestore
 
-import com.avingard.LOG
 import com.avingard.firestore.annotations.DocumentId
 import com.avingard.firestore.annotations.IgnoreProperty
-import com.avingard.toInstant
-import com.avingard.toTimeStamp
+import com.avingard.firebase.toInstant
+import com.avingard.firebase.toTimeStamp
 import com.google.firestore.v1.Value
 import com.google.firestore.v1.arrayValue
 import com.google.firestore.v1.mapValue

@@ -1,4 +1,4 @@
-package com.avingard
+package com.avingard.firebase
 
 import com.google.api.core.ApiClock
 import java.io.Serializable

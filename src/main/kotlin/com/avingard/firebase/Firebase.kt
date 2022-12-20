@@ -9,7 +9,7 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
-class Firebase(
+class Firebase private constructor(
     val firebaseOptions: FirebaseOptions
 ) {
     internal val httpClient = HttpClient(OkHttp) {
@@ -35,9 +35,13 @@ class Firebase(
         @Volatile
         private var INSTANCE: Firebase? = null
 
-        val auth by lazy { FirebaseAuth(getInstance()) }
-        val firestore by lazy { Firestore(getInstance()) }
-        val firestorage by lazy { Firestorage(getInstance()) }
+        val auth by lazy { FirebaseAuth() }
+        val firestore by lazy { Firestore(instance) }
+        val firestorage by lazy { Firestorage(instance) }
+
+        internal val instance by lazy {
+            INSTANCE ?: throw RuntimeException("FirebaseApp has not been initialized!")
+        }
 
         fun initializeApp(firestoreOptions: FirebaseOptions): Firebase {
             return INSTANCE ?: synchronized(this) {
@@ -45,10 +49,6 @@ class Firebase(
                     INSTANCE = it
                 }
             }
-        }
-
-        private fun getInstance(): Firebase {
-            return INSTANCE ?: throw RuntimeException("FirebaseApp has not been initialized!")
         }
     }
 }

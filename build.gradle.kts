@@ -1,10 +1,15 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import com.google.protobuf.gradle.*
+import org.jetbrains.kotlin.com.intellij.openapi.vfs.StandardFileSystems.jar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.7.10"
     kotlin("plugin.serialization") version "1.7.10"
     id("com.google.protobuf") version "0.8.19"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
+    `java-library`
+    `java-library-distribution`
 }
 
 group = "org.example"
@@ -20,6 +25,7 @@ val grpcKotlinVersion = "1.3.0"
 val coroutinesVersion = "1.6.4"
 val ktorVersion = "2.1.3"
 val logbackVersion = "1.4.5"
+
 
 dependencies {
     implementation("io.grpc:grpc-stub:$grpcVersion")
@@ -89,6 +95,10 @@ protobuf {
     }
 }
 
+tasks.getByName<ShadowJar>("shadowJar") {
+    mergeServiceFiles()
+}
+
 tasks.getByName<Test>("test") {
     useJUnitPlatform()
 }
@@ -96,3 +106,5 @@ tasks.getByName<Test>("test") {
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "17"
 }
+
+

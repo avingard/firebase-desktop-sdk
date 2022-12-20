@@ -1,6 +1,6 @@
 package com.avingard.firestorage
 
-import com.avingard.LOG
+import com.avingard.firebase.LOG
 import com.avingard.firebase.Firebase
 import io.ktor.client.request.*
 import io.ktor.client.statement.*

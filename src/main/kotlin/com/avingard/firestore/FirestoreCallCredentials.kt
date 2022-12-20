@@ -1,6 +1,6 @@
 package com.avingard.firestore
 
-import com.avingard.LOG
+import com.avingard.firebase.LOG
 import com.avingard.firebase.Firebase
 import com.avingard.firebase.FirebaseOptions
 import io.grpc.CallCredentials
