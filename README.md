@@ -24,15 +24,33 @@ Firebase.initializeApp(firebaseOptions {
     
     //optional
     storageBucket = "bucket-name"
+    
+    // emulators
+    firestoreEmulator = emulator {
+        useEmulator = true
+        address = "localhost"
+        port = 8080
+    }
+    
+    firebaseAuthEmulator = emulator {
+        useEmulator = true
+        address = "localhost"
+        port = 9099
+    }
+
+    firestorageEmulator = emulator {
+        useEmulator = true
+        address = "localhost"
+        port = 9199
+    }
 })
 ```
 
 
 ## Firebase auth
 
-It is integrated with all the currently supported libraries, when current user's not set, 
+It is integrated with all supported libraries, when current user's not set, 
 no auth headers are being sent towards google's servers.
-
 
 ```
 val auth = Firebase.auth
@@ -89,7 +107,7 @@ but it's a good start nonetheless. The most important ones come to mind:
 - Firestore pagination
 - A lot of other libraries that you would usually find in the official mobile - web sdk.
 
-And the list goes on...
+
 
 Any contribution is appreciated!
 
