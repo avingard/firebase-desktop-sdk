@@ -41,9 +41,6 @@ Firebase.initializeApp(firebaseOptions {
 
 ## Firebase auth
 
-It is integrated with all supported libraries, when current user's not set, 
-no auth headers are being sent towards google's servers.
-
 ```
 val auth = Firebase.auth
 
@@ -93,13 +90,7 @@ Firebase.firestore
 ## What's missing?
 
 There are many things I did not require for my project. It is far from ready to be used in production,
-but it's a good start nonetheless. The most important ones come to mind: 
-
-- Any sort of disk cache
-- Firestore pagination
-- A lot of other libraries that you would usually find in the official mobile - web sdk.
-
-
+but it's a good start nonetheless.
 
 Any contribution is appreciated!
 
