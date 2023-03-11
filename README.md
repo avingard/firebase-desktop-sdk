@@ -4,7 +4,8 @@
 
 A light wrapper around the public firebase REST / gRPC apis, using kotlin coroutines.
 
-## Supported libraries so far: Firebase auth, Firestore, Firestorage
+## Supported libraries: 
+Firebase auth, Firestore, Firestorage
 
 
 ## Init 
